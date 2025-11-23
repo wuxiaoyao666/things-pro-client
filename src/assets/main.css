@@ -1,0 +1,8 @@
+@import "tailwindcss";
+
+/* 下面是你自己的样式 */
+body {
+    margin: 0;
+    padding: 0;
+    background-color: white;
+}
