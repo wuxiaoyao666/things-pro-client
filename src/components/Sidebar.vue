@@ -60,11 +60,16 @@
         </nav>
 
         <div class="px-3 pb-1 text-[11px] font-bold text-[#999] mt-4 mb-1 flex justify-between group cursor-default">
-          <span>项目</span>
-          <span class="hidden group-hover:inline text-[#2ea4db] cursor-pointer">隐藏</span>
+          <span>我的项目</span>
         </div>
 
-        <div class="space-y-[1px]">
+        <VueDraggable
+          v-model="projectStore.projectSidebar"
+          :animation="150"
+          ghostClass="ghost"
+          @end="onDragEnd"
+          class="space-y-[1px]"
+        >
           <router-link
             v-for="project in projectStore.projectSidebar"
             :key="project.id"
@@ -84,14 +89,14 @@
               <span class="text-[#444] truncate">{{ project.name }}</span>
             </div>
           </router-link>
-        </div>
+        </VueDraggable>
 
       </div>
 
       <div class="h-10 border-t border-[#e0e0e0] flex items-center px-3 justify-between text-[#666] shrink-0 bg-[#f5f5f5]">
         <button class="flex items-center space-x-1 hover:text-[#333] transition px-2 py-1 rounded hover:bg-[#e4e4e4]">
           <Plus class="w-4 h-4" />
-          <span>新建列表</span>
+          <span>新建项目</span>
         </button>
 
         <div class="flex items-center space-x-1">
@@ -121,12 +126,16 @@
 import { onMounted } from 'vue'
 import {
   Inbox, Star, CalendarDays, Layers, Package,
-  CheckSquare, Trash2, Plus, PanelLeftClose, Settings // 引入 Settings 图标
+  CheckSquare, Trash2, Plus, PanelLeftClose, Settings
 } from 'lucide-vue-next'
 import { useProjectStore } from '@/stores/projectStore'
 import { useUIStore } from '@/stores/ui'
 import ProjectProgressIcon from '@/components/ProjectProgressIcon.vue'
 import { toast } from 'vue-sonner'
+// 1. 引入拖拽组件
+import { VueDraggable } from 'vue-draggable-plus'
+// 2. 引入更新接口
+import { reqUpdateProject } from '@/api/project'
 
 const projectStore = useProjectStore()
 const uiStore = useUIStore()
@@ -137,12 +146,38 @@ onMounted(() => {
 })
 
 const handleSettings = () => {
-  // 这里后续可以做一个弹出菜单 (Dropdown Menu)
-  // 显示当前登录用户，以及退出登录选项
   toast.info('设置面板功能开发中...')
 }
 
-// 提取样式常量 (Tailwind v4 兼容)
+// 拖拽结束处理函数
+const onDragEnd = async () => {
+  // 此时 projectStore.projectSidebar 已经是排序后的新数组了
+  // 我们遍历数组，将现在的 index 作为新的 order 发送给后端
+  const updates = projectStore.projectSidebar.map((item, index) => {
+    // 如果当前的 order 不等于新的 index，说明位置变了，需要更新
+    if (item.order !== index) {
+      // 乐观更新本地数据，防止 UI 闪烁
+      item.order = index
+      // 发送请求更新后端
+      return reqUpdateProject({ id: item.id, order: index })
+    }
+    return null
+  }).filter(Boolean) // 过滤掉不需要更新的请求
+
+  if (updates.length > 0) {
+    try {
+      // 并发发送请求
+      await Promise.all(updates)
+      // 成功时不提示，保持静默体验
+    } catch (error) {
+      toast.error('排序保存失败')
+      // 失败时最好重新拉取一次列表以复原顺序
+      await projectStore.getProjectSidebar()
+    }
+  }
+}
+
+// 提取样式常量
 const commonClass = "flex items-center space-x-3 px-3 py-[6px] rounded-md cursor-pointer transition-colors duration-150"
 const activeClass = "bg-[#dcdcdc] font-medium" // 选中状态 (深灰)
 const hoverClass = "hover:bg-[#e4e4e4]" // 悬停状态 (浅灰)
@@ -153,5 +188,13 @@ const hoverClass = "hover:bg-[#e4e4e4]" // 悬停状态 (浅灰)
 .custom-scrollbar::-webkit-scrollbar {
   width: 0;
   background: transparent;
+}
+
+/* 拖拽时的占位符样式 (Ghost) */
+/* 当你拖动一个项目时，原本的位置会显示这个样式 */
+.ghost {
+  opacity: 0.4;
+  background-color: #e0e0e0;
+  border-radius: 6px;
 }
 </style>

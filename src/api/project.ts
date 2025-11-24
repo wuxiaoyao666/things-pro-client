@@ -9,9 +9,17 @@ export interface ProjectSidebarVO {
   progress: number // 0 - 100
 }
 
+export interface UpdateProjectParams {
+  id: string
+  name?: string
+  order?: number
+  status?: number
+}
+
 enum API {
   Sidebar = '/project/sidebar', // ✅ 专用接口
   Create = '/project',
+  Update = '/project'
   // Detail = '/project/:id' // 后续详情页用
 }
 
@@ -23,4 +31,8 @@ export const reqGetSidebar = () => {
 // 创建项目 (顺便把创建也定义了，Sidebar 底部的按钮要用)
 export const reqCreateProject = (name: string) => {
   return request.post<any, Result<{ id: string }>>(API.Create, { name })
+}
+
+export const reqUpdateProject = (data: UpdateProjectParams) => {
+  return request.put<any, Result<any>>(API.Update, data)
 }
