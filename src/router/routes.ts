@@ -4,6 +4,7 @@ import MainLayout from '@/layout/MainLayout.vue'
 import InboxView from '@/views/InboxView.vue'
 // 引入新组件 (稍后创建)
 import ProjectView from '@/views/ProjectView.vue'
+import TodayView from '@/views/TodayView.vue'
 
 export const routes: RouteRecordRaw[] = [
   {
@@ -24,7 +25,7 @@ export const routes: RouteRecordRaw[] = [
         meta: { title: '收件箱' },
       },
       // ... 其他路由保持不变 ...
-      { path: 'today', component: InboxView, meta: { title: '今天' } },
+      { path: 'today', component: TodayView, meta: { title: '今天' } },
       { path: 'upcoming', component: InboxView, meta: { title: '计划' } },
       { path: 'anytime', component: InboxView, meta: { title: '随时' } },
       { path: 'someday', component: InboxView, meta: { title: '某天' } },

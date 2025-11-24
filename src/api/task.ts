@@ -66,9 +66,22 @@ export interface CreateTaskParams {
 // 更新任务参数
 export interface UpdateTaskParams {
   id: string
-  name?: string
-  status?: number
-  // ... 其他可选字段
+  name: string          // 必填：否则后端会变成空字符串
+  description?: string  // 选填：传空字符串会清空备注
+
+  status?: number       // 0-3
+  order?: number
+  type?: number         // 0:Project, 1:Inbox, 2:Someday
+
+  projectId?: string | null // 允许传 null (移入收件箱)
+  titleId?: string | null
+
+  tagIds?: string[]     // 标签 ID 数组
+
+  startTime?: string | null // "YYYY-MM-DD"
+  endTime?: string | null   // "YYYY-MM-DD"
+
+  checklist?: CheckListItem[] // 检查项列表
 }
 
 enum API {
