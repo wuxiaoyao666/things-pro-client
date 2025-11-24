@@ -29,7 +29,10 @@
       </div>
     </header>
 
-    <main class="flex-1 overflow-y-auto px-10 pb-20 custom-scrollbar">
+    <main
+      class="flex-1 overflow-y-auto px-10 pb-20 custom-scrollbar"
+      @click="selectedTaskId = ''"
+    >
 
       <div v-if="loading" class="text-gray-400 text-sm mt-4">加载中...</div>
 
@@ -43,7 +46,7 @@
 
             <Transition name="task-switch" mode="out-in">
 
-              <div v-if="editingTaskId === task.id">
+              <div v-if="editingTaskId === task.id" @click.stop>
                 <TaskEditor
                   :task="task"
                   @close="editingTaskId = null"
@@ -54,7 +57,9 @@
               <div v-else>
                 <TaskItem
                   :task="task"
+                  :class="{ '!bg-[#2ea4db]/10': selectedTaskId === task.id }"
                   @toggle="handleToggleTask"
+                  @click.stop="selectedTaskId = task.id"
                   @dblclick="editingTaskId = task.id"
                 />
               </div>
@@ -83,6 +88,9 @@ const taskStore = useTaskStore()
 const loading = ref(false)
 const activeTagId = ref('')
 const editingTaskId = ref<string | null>(null)
+
+// ✅ 新增：当前选中的任务ID (用于高亮)
+const selectedTaskId = ref<string | null>(null)
 
 const formattedDate = computed(() => {
   return new Date().toLocaleDateString('zh-CN', { month: 'short', day: 'numeric', weekday: 'long' })
@@ -154,12 +162,8 @@ const handleToggleTask = async (task: TaskVO) => {
   background: transparent;
 }
 
-/* ✅ Things 3 风格的切换动画 */
-/* enter: 稍微缩小一点(0.98)再弹出来，模拟卡片“浮起”的感觉
-   leave: 快速淡出，不抢视觉
-*/
 .task-switch-enter-active {
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); /* 类似 Apple 的弹性曲线 */
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .task-switch-leave-active {
