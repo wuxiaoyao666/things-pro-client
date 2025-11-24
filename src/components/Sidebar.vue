@@ -1,47 +1,62 @@
 <template>
   <div
     class="h-screen bg-[#f5f5f5] flex flex-col border-r border-[#e0e0e0] select-none font-sans text-[13px] overflow-hidden transition-all duration-300 ease-in-out"
-    :class="[ uiStore.isSidebarOpen ? 'w-[260px] opacity-100' : 'w-0 opacity-0 border-none' ]"
+    :class="[uiStore.isSidebarOpen ? 'w-[260px] opacity-100' : 'w-0 opacity-0 border-none']"
   >
     <div class="min-w-[260px] h-full flex flex-col">
-
-      <div class="h-12 flex items-center px-4 space-x-2 shrink-0">
-        <div class="w-3 h-3 rounded-full bg-[#ff5f57] border border-[#e0443e]"></div>
-        <div class="w-3 h-3 rounded-full bg-[#febc2e] border border-[#d89e24]"></div>
-        <div class="w-3 h-3 rounded-full bg-[#28c840] border border-[#1aab29]"></div>
-      </div>
+      <div class="h-12 flex items-center px-4 space-x-2 shrink-0"></div>
 
       <div class="flex-1 overflow-y-auto py-2 px-2 custom-scrollbar">
-
         <nav class="space-y-[1px] mb-6">
           <router-link to="/inbox" custom v-slot="{ isActive, navigate }">
             <div @click="navigate" :class="[commonClass, isActive ? activeClass : hoverClass]">
-              <Inbox class="w-4 h-4 text-[#2ea4db]" /> <span class="font-medium text-[#444]">收件箱</span>
+              <Inbox class="w-4 h-4 text-[#2ea4db]" />
+              <span class="font-medium text-[#444]">收件箱</span>
             </div>
           </router-link>
 
           <router-link to="/today" custom v-slot="{ isActive, navigate }">
             <div @click="navigate" :class="[commonClass, isActive ? activeClass : hoverClass]">
-              <Star class="w-4 h-4 text-[#f5cc00] fill-current" /> <span class="font-medium text-[#444] flex-1">今天</span>
-              <span v-if="isActive || true" class="text-xs font-bold text-[#444] px-1.5">2</span>
+              <Star class="w-4 h-4 text-[#f5cc00] fill-current" />
+              <span class="font-medium text-[#444] flex-1">今天</span>
+
+              <div class="flex items-center space-x-1.5">
+                <div
+                  v-if="taskStore.overdueCount > 0"
+                  class="flex items-center justify-center min-w-[16px] h-4 px-0.5 rounded-full bg-[#ff3b30] text-white text-[10px] font-bold leading-none"
+                >
+                  {{ taskStore.overdueCount }}
+                </div>
+
+                <span
+                  v-if="taskStore.todayCount > 0"
+                  class="text-[11px] font-medium"
+                  :class="[isActive ? 'text-[#444]' : 'text-[#aaa]']"
+                >
+                  {{ taskStore.todayCount }}
+                </span>
+              </div>
             </div>
           </router-link>
 
           <router-link to="/upcoming" custom v-slot="{ isActive, navigate }">
             <div @click="navigate" :class="[commonClass, isActive ? activeClass : hoverClass]">
-              <CalendarDays class="w-4 h-4 text-[#ff3b30]" /> <span class="font-medium text-[#444]">计划</span>
+              <CalendarDays class="w-4 h-4 text-[#ff3b30]" />
+              <span class="font-medium text-[#444]">计划</span>
             </div>
           </router-link>
 
           <router-link to="/anytime" custom v-slot="{ isActive, navigate }">
             <div @click="navigate" :class="[commonClass, isActive ? activeClass : hoverClass]">
-              <Layers class="w-4 h-4 text-[#4d968d]" /> <span class="font-medium text-[#444]">随时</span>
+              <Layers class="w-4 h-4 text-[#4d968d]" />
+              <span class="font-medium text-[#444]">随时</span>
             </div>
           </router-link>
 
           <router-link to="/someday" custom v-slot="{ isActive, navigate }">
             <div @click="navigate" :class="[commonClass, isActive ? activeClass : hoverClass]">
-              <Package class="w-4 h-4 text-[#cfa046]" /> <span class="font-medium text-[#444]">某天</span>
+              <Package class="w-4 h-4 text-[#cfa046]" />
+              <span class="font-medium text-[#444]">某天</span>
             </div>
           </router-link>
         </nav>
@@ -49,17 +64,21 @@
         <nav class="space-y-[1px] mb-6">
           <router-link to="/logbook" custom v-slot="{ isActive, navigate }">
             <div @click="navigate" :class="[commonClass, isActive ? activeClass : hoverClass]">
-              <CheckSquare class="w-4 h-4 text-[#5dbb58]" /> <span class="font-medium text-[#444]">日志簿</span>
+              <CheckSquare class="w-4 h-4 text-[#5dbb58]" />
+              <span class="font-medium text-[#444]">日志簿</span>
             </div>
           </router-link>
           <router-link to="/trash" custom v-slot="{ isActive, navigate }">
             <div @click="navigate" :class="[commonClass, isActive ? activeClass : hoverClass]">
-              <Trash2 class="w-4 h-4 text-[#999]" /> <span class="font-medium text-[#444]">废纸篓</span>
+              <Trash2 class="w-4 h-4 text-[#999]" />
+              <span class="font-medium text-[#444]">废纸篓</span>
             </div>
           </router-link>
         </nav>
 
-        <div class="px-3 pb-1 text-[11px] font-bold text-[#999] mt-4 mb-1 flex justify-between group cursor-default">
+        <div
+          class="px-3 pb-1 text-[11px] font-bold text-[#999] mt-4 mb-1 flex justify-between group cursor-default"
+        >
           <span>我的项目</span>
         </div>
 
@@ -72,8 +91,10 @@
           class="space-y-[1px]"
           :disabled="isEditing"
         >
-          <template v-for="(item, index) in projectStore.projectSidebar" :key="item.id || 'temp-new'">
-
+          <template
+            v-for="(item, index) in projectStore.projectSidebar"
+            :key="item.id || 'temp-new'"
+          >
             <div
               v-if="(item as any).isEditing"
               class="flex items-center space-x-3 px-3 py-[6px] rounded-md bg-[#dcdcdc]"
@@ -91,32 +112,27 @@
               />
             </div>
 
-            <router-link
-              v-else
-              :to="`/project/${item.id}`"
-              custom
-              v-slot="{ isActive, navigate }"
-            >
+            <router-link v-else :to="`/project/${item.id}`" custom v-slot="{ isActive, navigate }">
               <div
                 @click="navigate"
                 @contextmenu.prevent="openContextMenu($event, item)"
-                :class="[commonClass, isActive ? activeClass : hoverClass, 'group relative drag-handle']"
+                :class="[
+                  commonClass,
+                  isActive ? activeClass : hoverClass,
+                  'group relative drag-handle',
+                ]"
               >
-                <ProjectProgressIcon
-                  :progress="item.progress"
-                  :size="16"
-                  class="shrink-0"
-                />
+                <ProjectProgressIcon :progress="item.progress" :size="16" class="shrink-0" />
                 <span class="text-[#444] truncate">{{ item.name }}</span>
               </div>
             </router-link>
-
           </template>
         </VueDraggable>
-
       </div>
 
-      <div class="h-10 border-t border-[#e0e0e0] flex items-center px-3 justify-between text-[#666] shrink-0 bg-[#f5f5f5]">
+      <div
+        class="h-10 border-t border-[#e0e0e0] flex items-center px-3 justify-between text-[#666] shrink-0 bg-[#f5f5f5]"
+      >
         <button
           @click="startCreate"
           class="flex items-center space-x-1 hover:text-[#333] transition px-2 py-1 rounded hover:bg-[#e4e4e4]"
@@ -143,7 +159,6 @@
           </button>
         </div>
       </div>
-
     </div>
 
     <ContextMenu
@@ -154,7 +169,6 @@
       @rename="startRename"
       @delete="handleDelete"
     />
-
   </div>
 </template>
 
@@ -162,8 +176,16 @@
 import { onMounted, reactive, ref, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
-  Inbox, Star, CalendarDays, Layers, Package,
-  CheckSquare, Trash2, Plus, PanelLeftClose, Settings
+  Inbox,
+  Star,
+  CalendarDays,
+  Layers,
+  Package,
+  CheckSquare,
+  Trash2,
+  Plus,
+  PanelLeftClose,
+  Settings,
 } from 'lucide-vue-next'
 import { VueDraggable } from 'vue-draggable-plus'
 import { toast } from 'vue-sonner'
@@ -175,14 +197,17 @@ import ContextMenu from '@/components/ContextMenu.vue'
 
 import { reqUpdateProject, reqCreateProject } from '@/api/project'
 import type { ProjectSidebarVO } from '@/api/project'
+import { useTaskStore } from '@/stores/taskStore'
 
 const route = useRoute()
 const router = useRouter()
 const projectStore = useProjectStore()
 const uiStore = useUIStore()
+const taskStore = useTaskStore()
 
 onMounted(() => {
   projectStore.getProjectSidebar()
+  taskStore.getTodayTasks()
 })
 
 const handleSettings = () => {
@@ -209,7 +234,7 @@ const startCreate = async () => {
   let insertIndex = projectStore.projectSidebar.length
   if (route.name === 'project' && route.params.id) {
     const currentId = route.params.id as string
-    const currentIndex = projectStore.projectSidebar.findIndex(p => p.id === currentId)
+    const currentIndex = projectStore.projectSidebar.findIndex((p) => p.id === currentId)
     if (currentIndex !== -1) {
       insertIndex = currentIndex + 1
     }
@@ -217,8 +242,11 @@ const startCreate = async () => {
 
   // 2. 插入占位符
   const tempItem = {
-    id: '', name: '', order: 0, progress: 0,
-    isEditing: true // 标记为编辑状态
+    id: '',
+    name: '',
+    order: 0,
+    progress: 0,
+    isEditing: true, // 标记为编辑状态
   } as any
   projectStore.projectSidebar.splice(insertIndex, 0, tempItem)
 
@@ -235,7 +263,7 @@ const startRename = async () => {
   if (!project) return
 
   // 找到 Store 中对应的对象
-  const item = projectStore.projectSidebar.find(p => p.id === project.id)
+  const item = projectStore.projectSidebar.find((p) => p.id === project.id)
   if (item) {
     isEditing.value = true
     editingName.value = item.name
@@ -335,13 +363,15 @@ const cancelEdit = (item: any, index: number) => {
 // 2. 拖拽排序逻辑
 // =============================================================================
 const onDragEnd = async () => {
-  const updates = projectStore.projectSidebar.map((item, index) => {
-    if (item.order !== index) {
-      item.order = index
-      return reqUpdateProject({ id: item.id, order: index })
-    }
-    return null
-  }).filter(Boolean)
+  const updates = projectStore.projectSidebar
+    .map((item, index) => {
+      if (item.order !== index) {
+        item.order = index
+        return reqUpdateProject({ id: item.id, order: index })
+      }
+      return null
+    })
+    .filter(Boolean)
 
   if (updates.length > 0) {
     try {
@@ -359,7 +389,7 @@ const contextMenu = reactive({
   visible: false,
   x: 0,
   y: 0,
-  project: null as ProjectSidebarVO | null
+  project: null as ProjectSidebarVO | null,
 })
 
 const openContextMenu = (e: MouseEvent, project: ProjectSidebarVO) => {
@@ -378,7 +408,7 @@ const handleDelete = async () => {
 
   try {
     await reqUpdateProject({ id: project.id, status: 3 })
-    const index = projectStore.projectSidebar.findIndex(p => p.id === project.id)
+    const index = projectStore.projectSidebar.findIndex((p) => p.id === project.id)
     if (index !== -1) {
       projectStore.projectSidebar.splice(index, 1)
     }
@@ -392,12 +422,20 @@ const handleDelete = async () => {
 }
 
 // 样式常量
-const commonClass = "flex items-center space-x-3 px-3 py-[6px] rounded-md cursor-pointer transition-colors duration-150"
-const activeClass = "bg-[#dcdcdc] font-medium"
-const hoverClass = "hover:bg-[#e4e4e4]"
+const commonClass =
+  'flex items-center space-x-3 px-3 py-[6px] rounded-md cursor-pointer transition-colors duration-150'
+const activeClass = 'bg-[#dcdcdc] font-medium'
+const hoverClass = 'hover:bg-[#e4e4e4]'
 </script>
 
 <style scoped>
-.custom-scrollbar::-webkit-scrollbar { width: 0; background: transparent; }
-.ghost { opacity: 0.4; background-color: #e0e0e0; border-radius: 6px; }
+.custom-scrollbar::-webkit-scrollbar {
+  width: 0;
+  background: transparent;
+}
+.ghost {
+  opacity: 0.4;
+  background-color: #e0e0e0;
+  border-radius: 6px;
+}
 </style>
