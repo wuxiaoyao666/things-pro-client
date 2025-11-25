@@ -1,6 +1,6 @@
 <template>
   <div
-    class="group flex items-start py-2 px-3 -mx-3 rounded-lg hover:bg-[#f5f5f5] transition-colors duration-150 cursor-default"
+    class="group flex items-start py-2 px-3 -mx-3 rounded-lg hover:bg-[#f5f5f5] transition-colors duration-150 cursor-default select-none"
   >
     <div class="mt-0.5 mr-3 shrink-0">
       <div

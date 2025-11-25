@@ -37,12 +37,18 @@
       <div v-if="loading" class="text-gray-400 text-sm mt-4">加载中...</div>
 
       <div v-else>
-        <div v-if="filteredTasks.length === 0" class="mt-10 text-center text-gray-400 text-sm">
+        <div v-if="localTasks.length === 0" class="mt-10 text-center text-gray-400 text-sm">
           没有任务
         </div>
 
-        <div class="space-y-1">
-          <template v-for="task in filteredTasks" :key="task.id">
+        <VueDraggable
+          v-model="localTasks"
+          :animation="150"
+          :disabled="!!activeTagId"
+          class="space-y-1"
+          @end="onDragEnd"
+        >
+          <template v-for="task in localTasks" :key="task.id">
 
             <Transition name="task-switch" mode="out-in">
 
@@ -67,7 +73,7 @@
             </Transition>
 
           </template>
-        </div>
+        </VueDraggable>
       </div>
 
     </main>
@@ -75,9 +81,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { Star } from 'lucide-vue-next'
 import { toast } from 'vue-sonner'
+import { VueDraggable } from 'vue-draggable-plus'
 import TaskItem from '@/components/TaskItem.vue'
 import TaskEditor from '@/components/TaskEditor.vue'
 import { useTaskStore } from '@/stores/taskStore'
@@ -88,9 +95,9 @@ const taskStore = useTaskStore()
 const loading = ref(false)
 const activeTagId = ref('')
 const editingTaskId = ref<string | null>(null)
-
-// ✅ 新增：当前选中的任务ID (用于高亮)
 const selectedTaskId = ref<string | null>(null)
+
+const localTasks = ref<TaskVO[]>([])
 
 const formattedDate = computed(() => {
   return new Date().toLocaleDateString('zh-CN', { month: 'short', day: 'numeric', weekday: 'long' })
@@ -126,8 +133,59 @@ const filteredTasks = computed(() => {
   return list.filter(task => task.tags?.some(t => t.id === activeTagId.value))
 })
 
+// 监听 Store 变化，同步到本地
+watch(
+  () => filteredTasks.value,
+  (newVal) => {
+    localTasks.value = [...newVal]
+  },
+  { immediate: true, deep: true }
+)
+
 const toggleTagFilter = (id: string) => {
   activeTagId.value = activeTagId.value === id ? '' : id
+}
+
+// ✅ 核心修复：拖拽结束处理
+const onDragEnd = async () => {
+  // 1. 如果正在筛选，禁止操作（UI上已经禁止，这里双重保险）
+  if (activeTagId.value) return
+
+  // 2. 【关键步骤】立即更新 Store，防止 Watcher 将数据回滚
+  // 这一步保证了本地 Store 和 UI 顺序一致
+  taskStore.todayTasks = [...localTasks.value]
+
+  // 3. 计算变更并发送请求
+  const updates = localTasks.value.map((item, index) => {
+    if (item.order !== index) {
+      item.order = index
+      // 后端是全量更新，必须带上所有字段
+      return reqUpdateTask({
+        id: item.id,
+        name: item.name,
+        description: item.description,
+        status: item.status,
+        order: index, // 更新顺序
+        startTime: item.startTime,
+        endTime: item.endTime,
+        projectId: item.projectId,
+        titleId: item.titleId,
+        tagIds: item.tags ? item.tags.map(t => t.id) : [],
+        checklist: item.checklist
+      })
+    }
+    return null
+  }).filter(Boolean)
+
+  if (updates.length > 0) {
+    try {
+      await Promise.all(updates)
+      // 成功不需要做任何事，因为 Store 已经是新的了
+    } catch (error) {
+      toast.error('排序保存失败')
+      refreshData() // 失败回滚
+    }
+  }
 }
 
 const handleToggleTask = async (task: TaskVO) => {
@@ -163,16 +221,16 @@ const handleToggleTask = async (task: TaskVO) => {
 }
 
 .task-switch-enter-active {
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .task-switch-leave-active {
-  transition: all 0.1s ease-in;
+  transition: all 0.15s ease-in;
 }
 
 .task-switch-enter-from,
 .task-switch-leave-to {
   opacity: 0;
-  transform: scale(0.98) translateY(2px);
+  transform: scale(0.96);
 }
 </style>
