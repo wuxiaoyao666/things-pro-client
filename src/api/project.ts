@@ -1,5 +1,7 @@
 import request from '@/utils/request'
 import type { Result } from '@/api/types'
+import type { TagVO } from '@/api/tag.ts'
+import type { TitleGroup } from '@/api/title.ts'
 
 // 对应后端的 ProjectSidebarVO
 export interface ProjectSidebarVO {
@@ -16,16 +18,30 @@ export interface UpdateProjectParams {
   status?: number
 }
 
+export interface ProjectDetailVO {
+  id: string
+  name: string
+  description: string
+  endTime: string | null
+  status: number
+  tags: TagVO[]
+  groups: TitleGroup[]
+}
+
 enum API {
   Sidebar = '/project/sidebar', // ✅ 专用接口
   Create = '/project',
-  Update = '/project'
-  // Detail = '/project/:id' // 后续详情页用
+  Update = '/project',
+  Detail = '/project',
 }
 
 // 获取侧边栏项目列表
 export const reqGetSidebar = () => {
   return request.get<any, Result<ProjectSidebarVO[]>>(API.Sidebar)
+}
+
+export const reqGetProjectDetail = (id: string) => {
+  return request.get<any, Result<ProjectDetailVO>>(`${API.Detail}/${id}`)
 }
 
 // 创建项目 (顺便把创建也定义了，Sidebar 底部的按钮要用)
